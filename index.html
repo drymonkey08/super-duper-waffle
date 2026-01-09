@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal Life System</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --border: #e5e7eb;
+      --success: #16a34a;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 24px 32px 8px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 28px;
+    }
+
+    nav {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tab-button {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      min-width: 140px;
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .tab-button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    main {
+      padding: 24px 32px 48px;
+    }
+
+    .panel {
+      display: none;
+      animation: fadeIn 0.2s ease-in;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 16px;
+      background: white;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 22px;
+      border-radius: 14px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      min-width: 160px;
+      min-height: 52px;
+      transition: background 0.2s;
+    }
+
+    .button:hover {
+      background: var(--primary-dark);
+    }
+
+    .button.secondary {
+      background: white;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .button.secondary:hover {
+      background: #eef2ff;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .status-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status-pill.success {
+      background: rgba(22, 163, 74, 0.15);
+      color: var(--success);
+    }
+
+    .status-pill.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .list li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .list li:last-child {
+      border-bottom: none;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .footer-note {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Personal Life System</h1>
+    <nav>
+      <button class="tab-button active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-button" data-tab="quick-capture">Quick Capture</button>
+      <button class="tab-button" data-tab="daily-review">Daily Review</button>
+      <button class="tab-button" data-tab="weekly-review">Weekly Review</button>
+      <button class="tab-button" data-tab="settings">Settings</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="dashboard" class="panel active">
+      <div class="grid two">
+        <div class="card">
+          <h2>Today at a glance</h2>
+          <p class="muted" id="today-date"></p>
+          <div class="stack">
+            <div>
+              <div class="muted">Daily review status</div>
+              <div id="review-status" class="status-pill"></div>
+            </div>
+            <div>
+              <div class="muted">Captures today</div>
+              <div id="capture-count" style="font-size: 32px; font-weight: 700;">0</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>7-day streak</h2>
+          <p class="muted">How many days in a row you completed a daily review.</p>
+          <div id="streak-count" style="font-size: 40px; font-weight: 700;">0</div>
+          <p class="footer-note">Finish today’s review to keep the streak going.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="quick-capture" class="panel">
+      <div class="card">
+        <h2>Quick Capture</h2>
+        <p class="muted">Capture anything in seconds. Cmd+Enter saves.</p>
+        <div class="stack">
+          <div>
+            <label for="capture-text">Capture</label>
+            <textarea id="capture-text" placeholder="What do you want to remember?"></textarea>
+          </div>
+          <div>
+            <label for="capture-category">Category</label>
+            <select id="capture-category">
+              <option>Health</option>
+              <option>Wealth</option>
+              <option>Mind</option>
+              <option>Work</option>
+              <option>Relationships</option>
+            </select>
+          </div>
+          <button class="button" id="capture-save">Save Capture</button>
+        </div>
+        <p class="footer-note" id="capture-feedback"></p>
+      </div>
+    </section>
+
+    <section id="daily-review" class="panel">
+      <div class="card">
+        <h2>Daily Review</h2>
+        <p class="muted">Reflect quickly. Cmd+Enter saves.</p>
+        <div class="stack">
+          <div>
+            <label for="top-win">Top Win</label>
+            <textarea id="top-win" placeholder="What was the biggest win today?"></textarea>
+          </div>
+          <div>
+            <label for="lesson-learned">Lesson Learned</label>
+            <textarea id="lesson-learned" placeholder="What did you learn today?"></textarea>
+          </div>
+          <div>
+            <label for="tomorrow-focus">Tomorrow’s Focus</label>
+            <textarea id="tomorrow-focus" placeholder="What matters most tomorrow?"></textarea>
+          </div>
+          <div>
+            <label for="next-actions">3 Next Actions</label>
+            <div class="stack">
+              <input type="text" id="next-action-1" placeholder="Next action 1" />
+              <input type="text" id="next-action-2" placeholder="Next action 2" />
+              <input type="text" id="next-action-3" placeholder="Next action 3" />
+            </div>
+          </div>
+          <button class="button" id="daily-save">Save Daily Review</button>
+        </div>
+        <p class="footer-note" id="daily-feedback"></p>
+      </div>
+    </section>
+
+    <section id="weekly-review" class="panel">
+      <div class="grid two">
+        <div class="card">
+          <h2>Weekly Summary</h2>
+          <p class="muted" id="week-range"></p>
+          <div id="category-summary" class="stack"></div>
+        </div>
+        <div class="card">
+          <h2>Next Actions This Week</h2>
+          <ul class="list" id="weekly-actions"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="settings" class="panel">
+      <div class="card">
+        <h2>Backup & Restore</h2>
+        <p class="muted">Export or import your data to move between devices.</p>
+        <div class="toolbar">
+          <button class="button" id="export-data">Export JSON</button>
+          <label class="button secondary" for="import-data">Import JSON</label>
+          <input type="file" id="import-data" accept="application/json" style="display:none" />
+        </div>
+        <p class="footer-note" id="backup-feedback"></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "lifeSystemData";
+
+    const elements = {
+      todayDate: document.getElementById("today-date"),
+      reviewStatus: document.getElementById("review-status"),
+      captureCount: document.getElementById("capture-count"),
+      streakCount: document.getElementById("streak-count"),
+      captureText: document.getElementById("capture-text"),
+      captureCategory: document.getElementById("capture-category"),
+      captureSave: document.getElementById("capture-save"),
+      captureFeedback: document.getElementById("capture-feedback"),
+      topWin: document.getElementById("top-win"),
+      lessonLearned: document.getElementById("lesson-learned"),
+      tomorrowFocus: document.getElementById("tomorrow-focus"),
+      nextAction1: document.getElementById("next-action-1"),
+      nextAction2: document.getElementById("next-action-2"),
+      nextAction3: document.getElementById("next-action-3"),
+      dailySave: document.getElementById("daily-save"),
+      dailyFeedback: document.getElementById("daily-feedback"),
+      weekRange: document.getElementById("week-range"),
+      categorySummary: document.getElementById("category-summary"),
+      weeklyActions: document.getElementById("weekly-actions"),
+      exportData: document.getElementById("export-data"),
+      importData: document.getElementById("import-data"),
+      backupFeedback: document.getElementById("backup-feedback")
+    };
+
+    const defaultData = {
+      captures: [],
+      dailyReviews: {}
+    };
+
+    const categories = ["Health", "Wealth", "Mind", "Work", "Relationships"];
+
+    function getTodayKey(date = new Date()) {
+      return date.toISOString().split("T")[0];
+    }
+
+    function getWeekStart(date = new Date()) {
+      const day = date.getDay();
+      const diff = (day === 0 ? -6 : 1) - day; // Monday as start
+      const start = new Date(date);
+      start.setDate(date.getDate() + diff);
+      start.setHours(0, 0, 0, 0);
+      return start;
+    }
+
+    function getWeekEnd(startDate) {
+      const end = new Date(startDate);
+      end.setDate(startDate.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      return end;
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { ...defaultData };
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          captures: Array.isArray(parsed.captures) ? parsed.captures : [],
+          dailyReviews: parsed.dailyReviews && typeof parsed.dailyReviews === "object" ? parsed.dailyReviews : {}
+        };
+      } catch (error) {
+        return { ...defaultData };
+      }
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric"
+      });
+    }
+
+    function refreshDashboard(data) {
+      const todayKey = getTodayKey();
+      const todayDate = new Date();
+      elements.todayDate.textContent = formatDate(todayDate);
+
+      const hasReview = Boolean(data.dailyReviews[todayKey]);
+      elements.reviewStatus.textContent = hasReview ? "Saved" : "Not saved";
+      elements.reviewStatus.className = `status-pill ${hasReview ? "success" : "warning"}`;
+
+      const captureCount = data.captures.filter(capture => capture.date === todayKey).length;
+      elements.captureCount.textContent = captureCount.toString();
+
+      elements.streakCount.textContent = calculateStreak(data.dailyReviews, todayKey).toString();
+    }
+
+    function calculateStreak(dailyReviews, todayKey) {
+      let streak = 0;
+      let currentDate = new Date();
+      for (let i = 0; i < 7; i += 1) {
+        const key = getTodayKey(currentDate);
+        if (dailyReviews[key]) {
+          streak += 1;
+          currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      if (!dailyReviews[todayKey]) return 0;
+      return streak;
+    }
+
+    function refreshDailyReview(data) {
+      const todayKey = getTodayKey();
+      const review = data.dailyReviews[todayKey];
+      if (!review) {
+        elements.topWin.value = "";
+        elements.lessonLearned.value = "";
+        elements.tomorrowFocus.value = "";
+        elements.nextAction1.value = "";
+        elements.nextAction2.value = "";
+        elements.nextAction3.value = "";
+        return;
+      }
+      elements.topWin.value = review.topWin || "";
+      elements.lessonLearned.value = review.lessonLearned || "";
+      elements.tomorrowFocus.value = review.tomorrowFocus || "";
+      elements.nextAction1.value = review.nextActions?.[0] || "";
+      elements.nextAction2.value = review.nextActions?.[1] || "";
+      elements.nextAction3.value = review.nextActions?.[2] || "";
+    }
+
+    function refreshWeeklyReview(data) {
+      const start = getWeekStart();
+      const end = getWeekEnd(start);
+      elements.weekRange.textContent = `${formatDate(start)} - ${formatDate(end)}`;
+
+      const weekStartKey = getTodayKey(start);
+      const weekEndKey = getTodayKey(end);
+
+      const captures = data.captures.filter(capture => capture.date >= weekStartKey && capture.date <= weekEndKey);
+
+      elements.categorySummary.innerHTML = "";
+      categories.forEach(category => {
+        const count = captures.filter(capture => capture.category === category).length;
+        const item = document.createElement("div");
+        item.className = "card";
+        item.style.boxShadow = "none";
+        item.style.border = "1px solid var(--border)";
+        item.style.padding = "14px";
+        item.innerHTML = `<strong>${category}</strong><div class="muted">${count} capture${count === 1 ? "" : "s"}</div>`;
+        elements.categorySummary.appendChild(item);
+      });
+
+      const actions = [];
+      Object.entries(data.dailyReviews).forEach(([dateKey, review]) => {
+        if (dateKey >= weekStartKey && dateKey <= weekEndKey) {
+          (review.nextActions || []).forEach(action => {
+            if (action && action.trim()) {
+              actions.push({ dateKey, text: action.trim() });
+            }
+          });
+        }
+      });
+
+      elements.weeklyActions.innerHTML = "";
+      if (actions.length === 0) {
+        const empty = document.createElement("li");
+        empty.textContent = "No next actions saved yet.";
+        elements.weeklyActions.appendChild(empty);
+        return;
+      }
+
+      actions
+        .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
+        .forEach(action => {
+          const item = document.createElement("li");
+          item.innerHTML = `<strong>${action.text}</strong><div class="muted">${action.dateKey}</div>`;
+          elements.weeklyActions.appendChild(item);
+        });
+    }
+
+    function setFeedback(element, message) {
+      element.textContent = message;
+      if (!message) return;
+      setTimeout(() => {
+        element.textContent = "";
+      }, 3000);
+    }
+
+    function handleCaptureSave() {
+      const text = elements.captureText.value.trim();
+      if (!text) {
+        setFeedback(elements.captureFeedback, "Add a capture before saving.");
+        return;
+      }
+      const data = loadData();
+      data.captures.unshift({
+        id: crypto.randomUUID(),
+        text,
+        category: elements.captureCategory.value,
+        date: getTodayKey()
+      });
+      saveData(data);
+      elements.captureText.value = "";
+      setFeedback(elements.captureFeedback, "Capture saved!");
+      refreshDashboard(data);
+      refreshWeeklyReview(data);
+    }
+
+    function handleDailySave() {
+      const data = loadData();
+      const todayKey = getTodayKey();
+      data.dailyReviews[todayKey] = {
+        topWin: elements.topWin.value.trim(),
+        lessonLearned: elements.lessonLearned.value.trim(),
+        tomorrowFocus: elements.tomorrowFocus.value.trim(),
+        nextActions: [
+          elements.nextAction1.value.trim(),
+          elements.nextAction2.value.trim(),
+          elements.nextAction3.value.trim()
+        ]
+      };
+      saveData(data);
+      setFeedback(elements.dailyFeedback, "Daily review saved!");
+      refreshDashboard(data);
+      refreshWeeklyReview(data);
+    }
+
+    function handleExport() {
+      const data = loadData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `life-system-backup-${getTodayKey()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setFeedback(elements.backupFeedback, "Backup exported.");
+    }
+
+    function handleImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          const data = {
+            captures: Array.isArray(parsed.captures) ? parsed.captures : [],
+            dailyReviews: parsed.dailyReviews && typeof parsed.dailyReviews === "object" ? parsed.dailyReviews : {}
+          };
+          saveData(data);
+          refreshAll();
+          setFeedback(elements.backupFeedback, "Backup imported.");
+        } catch (error) {
+          setFeedback(elements.backupFeedback, "Could not import that file.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    function refreshAll() {
+      const data = loadData();
+      refreshDashboard(data);
+      refreshDailyReview(data);
+      refreshWeeklyReview(data);
+    }
+
+    function setupTabs() {
+      const buttons = document.querySelectorAll(".tab-button");
+      buttons.forEach(button => {
+        button.addEventListener("click", () => {
+          buttons.forEach(btn => btn.classList.remove("active"));
+          button.classList.add("active");
+          const tab = button.dataset.tab;
+          document.querySelectorAll(".panel").forEach(panel => {
+            panel.classList.toggle("active", panel.id === tab);
+          });
+        });
+      });
+    }
+
+    function setupShortcuts() {
+      document.addEventListener("keydown", event => {
+        if (!(event.metaKey && event.key === "Enter")) return;
+        const activePanel = document.querySelector(".panel.active");
+        if (!activePanel) return;
+        if (activePanel.id === "quick-capture") {
+          handleCaptureSave();
+        }
+        if (activePanel.id === "daily-review") {
+          handleDailySave();
+        }
+      });
+    }
+
+    elements.captureSave.addEventListener("click", handleCaptureSave);
+    elements.dailySave.addEventListener("click", handleDailySave);
+    elements.exportData.addEventListener("click", handleExport);
+    elements.importData.addEventListener("change", handleImport);
+
+    setupTabs();
+    setupShortcuts();
+    refreshAll();
+  </script>
+</body>
+</html>
