@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradingView</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #2962ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 20px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    header h1 {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+    .controls input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      width: 160px;
+      outline: none;
+    }
+    .controls input:focus { border-color: var(--accent); }
+    .controls button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .controls button:hover { filter: brightness(1.1); }
+    .chart-wrap { flex: 1 1 auto; position: relative; min-height: 0; }
+    #tv_chart { position: absolute; inset: 0; }
+    footer {
+      padding: 8px 20px;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📈 TradingView</h1>
+    <form class="controls" id="symbolForm">
+      <input id="symbolInput" type="text" placeholder="Symbol e.g. NASDAQ:AAPL" value="NASDAQ:AAPL" />
+      <button type="submit">Open</button>
+    </form>
+  </header>
+
+  <div class="chart-wrap">
+    <div id="tv_chart"></div>
+  </div>
+
+  <footer>
+    Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>.
+    Enter a symbol like <code>NASDAQ:AAPL</code>, <code>BINANCE:BTCUSDT</code>, or <code>FX:EURUSD</code>.
+  </footer>
+
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script>
+    let widget;
+
+    function renderChart(symbol) {
+      document.getElementById('tv_chart').innerHTML = '';
+      widget = new TradingView.widget({
+        autosize: true,
+        symbol: symbol,
+        interval: 'D',
+        timezone: 'Etc/UTC',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        toolbar_bg: '#161b22',
+        enable_publishing: false,
+        allow_symbol_change: true,
+        withdateranges: true,
+        details: true,
+        hotlist: true,
+        calendar: true,
+        container_id: 'tv_chart'
+      });
+    }
+
+    document.getElementById('symbolForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const val = document.getElementById('symbolInput').value.trim();
+      if (val) renderChart(val.toUpperCase());
+    });
+
+    renderChart('NASDAQ:AAPL');
+  </script>
+</body>
+</html>
